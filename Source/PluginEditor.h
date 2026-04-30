@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "StringComponent.h"
 
 //==================================================================
 class StringUIdemoAudioProcessorEditor : public juce::AudioProcessorEditor
@@ -29,8 +30,22 @@ public:
     }
 
 private:
+
+    int oldPosFret = -1;
+    int oldMidiNote = -1;
+ 
     void mouseDown(const juce::MouseEvent& e) override { handleMouseEvent(e); }
-    void mouseDrag(const juce::MouseEvent& e) override { handleMouseEvent(e); }
+    
+    void mouseDrag(const juce::MouseEvent& e) override {
+        handleMouseEvent(e);
+    }
+
+    void mouseUp(const juce::MouseEvent& e) override {
+        
+        //al rilascio del mouse azzero i parametri (-1 perchè 0 è una pos. del fret)
+        oldPosFret = -1; 
+        oldMidiNote = -1;
+    }
     void handleMouseEvent(const juce::MouseEvent& e);
 
     StringUIdemoAudioProcessor& audioProcessor;

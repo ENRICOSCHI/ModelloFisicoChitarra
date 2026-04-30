@@ -99,15 +99,28 @@ void StringUIdemoAudioProcessorEditor::handleMouseEvent (const juce::MouseEvent&
 
             /*Gestisco label nota*/
             int posFret = juce::jlimit(0, numFret, (int)(relPos * numFret));
+
             int midiNote = StringUIdemoAudioProcessor::guitarMidiNotes[i] + posFret;
 
-            juce::String nomeNota = juce::MidiMessage::getMidiNoteName(midiNote, true, true, 3);
+            //controllo se la posione del fret e della nota precedente sono diversi
+            //se almeno uno dei due è diverso posso suonare la nota
+            if (oldPosFret != posFret || oldMidiNote != midiNote) {
 
-            notaSuonataLabel.setText("Nota: " + nomeNota + " Tasto: " + (juce::String)posFret, juce::dontSendNotification);
+                //aggiorno posizione del fret
+                oldPosFret = posFret;
 
-            sc->stringPlucked (relPos);
-            audioProcessor.pluckString (i, relPos);
-            break;
+                //aggiorno la nota midi
+                oldMidiNote = midiNote;
+
+                juce::String nomeNota = juce::MidiMessage::getMidiNoteName(midiNote, true, true, 3);
+
+                notaSuonataLabel.setText("Nota: " + nomeNota + " Tasto: " + (juce::String)posFret, juce::dontSendNotification);
+
+                sc->stringPlucked(relPos);
+                audioProcessor.pluckString(i, relPos);
+                break;
+            }
+            
         }
     }
 }
