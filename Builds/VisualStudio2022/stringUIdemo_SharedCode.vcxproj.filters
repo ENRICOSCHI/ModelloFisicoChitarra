@@ -3741,6 +3741,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\StringSynthesiser.h">
+      <Filter>stringUIdemo\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\StringComponent.h">
       <Filter>stringUIdemo\Source</Filter>
     </ClInclude>

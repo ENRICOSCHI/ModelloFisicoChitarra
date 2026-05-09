@@ -4,7 +4,7 @@
 #include "PluginProcessor.h"
 #include "StringComponent.h"
 
-//==================================================================
+//==============================================================================
 class StringUIdemoAudioProcessorEditor : public juce::AudioProcessorEditor
 {
 public:
@@ -14,56 +14,67 @@ public:
     void paint(juce::Graphics&) override;
     void resized() override;
 
-    // Colori delle corde
+    // Colori delle corde (verde scalare, basso → alto)
     static juce::Colour stringColour(int index)
     {
         const juce::Colour colours[6] = {
-            juce::Colour(0xFF008000),//E2
-            juce::Colour(0xFF00CF00),//A2
-            juce::Colour(0xFF1FFF1F),//D3
-            juce::Colour(0xFF6FFF6F),//G3
-            juce::Colour(0xFF96FF96),//B3
-            juce::Colour(0xFFCCFFCC)//E4
+            juce::Colour(0xFF008000),  // E2
+            juce::Colour(0xFF00CF00),  // A2
+            juce::Colour(0xFF1FFF1F),  // D3
+            juce::Colour(0xFF6FFF6F),  // G3
+            juce::Colour(0xFF96FF96),  // B3
+            juce::Colour(0xFFCCFFCC)   // E4
         };
         return colours[index % 6];
     }
 
 private:
-
-    int oldPosFret = -1;
-    int oldMidiNote = -1;
- 
+    // --- Mouse ---
     void mouseDown(const juce::MouseEvent& e) override { handleMouseEvent(e); }
-    
-    void mouseDrag(const juce::MouseEvent& e) override {
-        handleMouseEvent(e);
-    }
-
-    void mouseUp(const juce::MouseEvent& e) override {
-        
-        //al rilascio del mouse azzero i parametri (-1 perche' 0 e' una pos. del fret)
-        oldPosFret = -1; 
-        oldMidiNote = -1;
-    }
+    void mouseDrag(const juce::MouseEvent& e) override { handleMouseEvent(e); }
+    void mouseUp(const juce::MouseEvent& e) override { oldPosFret = -1; oldMidiNote = -1; }
     void handleMouseEvent(const juce::MouseEvent& e);
 
-    /*Editor Methods per impostare gli oggetti della UI*/
+    // --- Paint helpers ---
     void SetTitle(juce::Graphics&);
     void SetLineaSeparatrice(juce::Graphics&);
     void SetStrings(juce::Graphics&);
     void SetSeparationFret(juce::Graphics&);
 
+    // --- Tuning helpers ---
+    // Aggiorna la label di tuning per la corda i (mostra nome nota + delta semitoni)
+    void updateTuningLabel(int stringIndex);
 
+    // Aggiorna tutte le label di tuning
+    void updateAllTuningLabels();
+
+    // --- Dati ---
     StringUIdemoAudioProcessor& audioProcessor;
 
     juce::OwnedArray<StringComponent> stringComponents;
 
-    //numero tasti del manico della chitarra
+    // Controlli tuning: per ogni corda un pulsante "-", una label, un pulsante "+"
+    juce::OwnedArray<juce::TextButton> tuningDownButtons;  // [−]
+    juce::OwnedArray<juce::TextButton> tuningUpButtons;    // [+]
+    juce::OwnedArray<juce::Label>      tuningLabels;       // "E2 (+0)"
+
+    // Pulsante reset accordatura
+    juce::TextButton resetTuningButton;
+
+    // Label nota suonata corrente
+    juce::Label notaSuonataLabel;
+
+    // Costanti layout
     const int numFret = 12;
-    //numero di corde della chitarra
     const int numCorde = 6;
 
-    juce::Label notaSuonataLabel;
+    // Larghezza della colonna tuning a sinistra delle corde
+    // Layout: [−](22) [Label nota(50)] [+](22) gap(8) → totale 102
+    static constexpr int tuningPanelWidth = 110;
+
+    // Stato mouse (evita retriggering sulla stessa posizione)
+    int oldPosFret = -1;
+    int oldMidiNote = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StringUIdemoAudioProcessorEditor)
 };
