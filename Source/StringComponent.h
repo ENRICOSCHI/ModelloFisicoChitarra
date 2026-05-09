@@ -38,7 +38,7 @@ public:
     /// <param name="pluckPositionRelative"></param>
     void stringPlucked(float pluckPositionRelative)
     {
-        //pluckPositionRelative Ë un valore tra 0 e 1 della posizione nella corda
+        //pluckPositionRelative √® un valore tra 0 e 1 della posizione nella corda
         //calcolo l'ampiezza della vibrazione
         amplitude = maxAmplitude * std::sin(pluckPositionRelative * juce::MathConstants<float>::pi);
         //imposta la fase nel punto corretto (sinusoide sincronizzata) 
@@ -57,7 +57,7 @@ public:
     }
 
     /// <summary>
-    /// Costruisco la forma della corda. Che puÚ oscillare
+    /// Costruisco la forma della corda. Che pu√≤ oscillare
     /// </summary>
     /// <returns></returns>
     juce::Path generateStringPath() const
@@ -70,7 +70,7 @@ public:
         juce::Path p;
         //parto da sinistra a disegnare
         p.startNewSubPath(0.0f, y);
-        //curva quadratica che si muove dall'alto al basso cosÏ da dare l'effetto del movimento
+        //curva quadratica che si muove dall'alto al basso cos√¨ da dare l'effetto del movimento
         p.quadraticTo(w / 2.0f, y + std::sin(phase) * amplitude, w, y);
         return p;
     }
@@ -84,7 +84,7 @@ private:
         //diminuzione nel tempo dell'oscillazione corda
         amplitude *= 0.99f;
 
-        //velocit‡ di oscillazione
+        //velocit√† di oscillazione
         float phaseStep = 400.0f / (float)juce::jmax(1, getWidth());
         phase += phaseStep;
 
