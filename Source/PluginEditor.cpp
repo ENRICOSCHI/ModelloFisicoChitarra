@@ -80,9 +80,52 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     updateAllTuningLabels();
 
     setSize(750, 420);
+
+	// Avvio il timer per controllare le interazioni Audio Thread -> UI Thread (per la MIDI)
+	startTimerHz(60); // Timer che scade 60 volte al secondo (ogni ~16ms)
 }
 
-StringUIdemoAudioProcessorEditor::~StringUIdemoAudioProcessorEditor() {}
+StringUIdemoAudioProcessorEditor::~StringUIdemoAudioProcessorEditor() 
+{
+	stopTimer(); // Ferma il timer quando l'editor viene distrutto | good practice.
+}
+
+//==============================================================================
+
+// Override del Callback del timer come specificato in PluginEditor.h
+void StringUIdemoAudioProcessorEditor::timerCallback() 
+{
+    // Controllo per ogni corda se la rispettiva flag è stata alzata dall'Audio Thread (processBlock)
+	// Tutto tramite Polling dell'atomic <bool> uiStringWasPlucked[numStrings]
+    for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i) 
+    {
+        // Check della flag, utilizzando il valore attuale e portandola a false
+        if (audioProcessor.uiStringWasPlucked[i].exchange(false)) 
+        {
+            float position = audioProcessor.uiPluckPosition[i].load(); // Posizione del pizzico
+			stringComponents.getUnchecked(i)->stringPlucked(position); // Aggiorna la visualizzazione della corda
+
+            #pragma region Aggiornamento label nota suonata
+
+            // Calcolo la fret della posizione relativa [0.0, 1.0]
+			int fret = juce::jlimit(0, numFret, (int)(position * numFret));
+
+			// Recupero la nota MIDI base della corda e vi sommo la fret per la nota MIDI effettiva suonata
+			int midiNote = audioProcessor.getStringMidiNote(i) + fret;
+
+            // Per il nome della nota riprendo la logica usata per esempio in HandleMouseEvent:
+            // (sempre attraverso la utility di JUCE)
+			juce::String nomeNota = juce::MidiMessage::getMidiNoteName(midiNote, true, true, 3);
+
+            // Aggiorno la label di conseguenza
+            notaSuonataLabel.setText("Nota: " + nomeNota + "  Tasto: " + juce::String(fret),
+				juce::dontSendNotification);
+
+            #pragma endregion
+        }
+    }
+
+}
 
 //==============================================================================
 void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)

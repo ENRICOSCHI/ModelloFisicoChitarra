@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "StringSynthesiser.h"
+#include <atomic>
 
 //==============================================================================
 class StringUIdemoAudioProcessor : public juce::AudioProcessor
@@ -14,6 +15,16 @@ public:
 
     // Range MIDI consentito per il tuning (±12 semitoni rispetto al default)
     static const int tuningRangeSemitones = 12;
+
+
+    #pragma region Variabili Atomic
+
+	// Atomic per gestire in maniera thread-safe le modifiche alla UI da parte del processBlock
+    std::atomic<bool> uiStringWasPlucked[numStrings];
+	std::atomic<float> uiPluckPosition[numStrings];
+
+    #pragma endregion
+
 
     StringUIdemoAudioProcessor();
     ~StringUIdemoAudioProcessor() override;

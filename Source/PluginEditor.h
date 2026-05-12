@@ -6,7 +6,7 @@
 #include "KnobStyle.h"
 
 //==============================================================================
-class StringUIdemoAudioProcessorEditor : public juce::AudioProcessorEditor
+class StringUIdemoAudioProcessorEditor : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     explicit StringUIdemoAudioProcessorEditor(StringUIdemoAudioProcessor&);
@@ -30,6 +30,12 @@ public:
     }
 
 private:
+
+	// --- Callback del Timer --- (Per interazione Audio Thread -> UI Thread per la MIDI)
+	void timerCallback() override;
+    /* Permette di controllare periodicamente 
+    se l'Audio Thread ha flaggato una corda come suonata.*/
+
     // --- Mouse ---
     void mouseDown(const juce::MouseEvent& e) override { handleMouseEvent(e); }
     void mouseDrag(const juce::MouseEvent& e) override { handleMouseEvent(e); }

@@ -18,9 +18,17 @@ StringUIdemoAudioProcessor::StringUIdemoAudioProcessor()
     )
 #endif
 {
-    // Inizializza il tuning corrente con i valori di default
-    for (int i = 0; i < numStrings; ++i)
-        currentMidiNotes[i] = defaultMidiNotes[i];
+    // Inizializzazioni utili...
+	for (int i = 0; i < numStrings; ++i) 
+    {
+        // Inizializzo il tuning corrente con i valori di default
+		currentMidiNotes[i] = defaultMidiNotes[i];
+
+        // Inizializzo gli atomic per la UI
+		uiStringWasPlucked[i].store(false);
+		uiPluckPosition[i].store(0.0f);
+	}
+
 }
 
 StringUIdemoAudioProcessor::~StringUIdemoAudioProcessor() {}
@@ -187,6 +195,11 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
                     float position = (float)fret / 12.0f;
 
                     pluckString(i, position);
+
+                    // Comunico tramite le variabili atomic (maniera thread-safe) alla UI
+					// che la corda i è stata pizzicata e qual è la posizione del tasto.
+                    uiPluckPosition[i].store(position);
+					uiStringWasPlucked[i].store(true);
 
                     // Se vogliamo che una nota MIDI attivi solo una corda, usiamo break.
                     // Altrimenti, se la nota è presente su più corde (es. Mi), suonerebbero tutte.
