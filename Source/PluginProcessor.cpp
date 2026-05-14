@@ -171,6 +171,8 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 {
     juce::ScopedNoDenormals noDenormals;
 
+    #pragma region Gestione MIDI
+
     // Gestione dei messaggi MIDI in arrivo
     for (const auto metadata : midiMessages)
     {
@@ -214,6 +216,10 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         }
     }
 
+    #pragma endregion
+
+    #pragma region Generazione Audio & Copia sui Canali
+
     buffer.clear();
 
     float* channelData = buffer.getWritePointer(0);
@@ -223,6 +229,31 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     for (int ch = 1; ch < buffer.getNumChannels(); ++ch)
         buffer.copyFrom(ch, 0, buffer, 0, 0, buffer.getNumSamples());
+
+    #pragma endregion
+
+    #pragma region Aggiunta Distorsione
+
+    // Variabili di distorsione
+	float driveAmount = 5.0f; // serve a decidere la ripidità della tangente iperbolica (più alto = più distorto)
+	float makeUpGain = 0.5f; // serve a compensare l'aumento di volume intrinseco dell'operazione di distorsione
+
+    // Ciclo per ogni canale...
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+
+		// Accedo tramite puntatore al buffer del canale
+		auto* channelData = buffer.getWritePointer(ch);
+
+		// Quindi applico la distorsione sample per sample nel buffer del canale
+        for (int numSample = 0; numSample < buffer.getNumSamples(); ++numSample) {
+
+			float originialSample = channelData[numSample];
+            // Soft Clipping via tangente iperbolica.
+			float distortedSampple = std::tanh(originialSample * driveAmount) * makeUpGain; 
+        }
+    }
+
+    #pragma endregion
 }
 
 //==============================================================================
