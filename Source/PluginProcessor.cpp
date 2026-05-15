@@ -223,6 +223,13 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     for (int ch = 1; ch < buffer.getNumChannels(); ++ch)
         buffer.copyFrom(ch, 0, buffer, 0, 0, buffer.getNumSamples());
+
+    // Se è aperta l'interfaccia grafica, invia l'audio all'oscilloscopio
+    if (puntatoreOscilloscopio != nullptr)
+    {
+        // pushBuffer prende l'audio e lo disegna
+		puntatoreOscilloscopio->pushBuffer(buffer);
+    }
 }
 
 //==============================================================================

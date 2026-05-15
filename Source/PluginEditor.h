@@ -94,5 +94,9 @@ private:
     int oldPosFret = -1;
     int oldMidiNote = -1;
 
+    // Sezione oscilloscopio
+	// Il parametro 2 indica i due canali stereo (sinistro e destro)
+    juce::AudioVisualiserComponent oscilloscopio{ 2 };
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StringUIdemoAudioProcessorEditor)
 };

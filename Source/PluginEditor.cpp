@@ -108,7 +108,8 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
 
 StringUIdemoAudioProcessorEditor::~StringUIdemoAudioProcessorEditor() 
 {
-	stopTimer(); // Ferma il timer quando l'editor viene distrutto | good practice.
+	audioProcessor.puntatoreOscilloscopio = nullptr; // Rimuovo il puntatore all'oscilloscopio dal processor (good practice)
+	stopTimer(); // Ferma il timer quando l'editor viene distrutto (good practice)
 }
 
 //==============================================================================
@@ -270,6 +271,24 @@ void StringUIdemoAudioProcessorEditor::resized()
             // Scala il font dei titoli
             titoloManopolaEffetto[i].setFont(juce::FontOptions(10.0f * scale));
         }
+    #pragma endregion
+
+    #pragma region Sezione oscilloscopio
+        //--- SETUP OSCILLOSCOPIO ---
+        // Parametri dell'onda visualizzata
+        oscilloscopio.setBufferSize(1024);
+        oscilloscopio.setSamplesPerBlock(128);
+        oscilloscopio.setRepaintRate(120); // Aggiornamento a 120 FPS
+
+        audioProcessor.puntatoreOscilloscopio = &oscilloscopio;
+
+        // Colori: Sfondo e Colore dell'Onda
+        oscilloscopio.setColours(juce::Colour(0xFF201513), juce::Colours::cyan);
+        oscilloscopio.setOpaque(true); // Per migliorare le prestazioni, dato che disegniamo tutto lo sfondo
+        addAndMakeVisible(oscilloscopio);
+
+        // Posizionamento dell'oscilloscopio
+        oscilloscopio.setBounds(areaParametriSinistra.reduced(10 * scale));
     #pragma endregion
 }
 

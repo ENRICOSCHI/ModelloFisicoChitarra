@@ -42,6 +42,9 @@ public:
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
 
+    // Puntatore all'oscilloscopio, usato per visualizzare le onde sonore
+    juce::AudioVisualiserComponent* puntatoreOscilloscopio = nullptr;
+
     const juce::String getName() const override;
     bool acceptsMidi()  const override;
     bool producesMidi() const override;
