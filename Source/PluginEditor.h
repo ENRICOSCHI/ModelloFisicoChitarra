@@ -66,6 +66,11 @@ private:
     // Aggiorna tutte le label di tuning
     void updateAllTuningLabels();
 
+	// --- Sezioni della UI ---
+    juce::Rectangle<int> areaParametriSinistra;
+    juce::Rectangle<int> areaEffettiDestra;
+    juce::Rectangle<int> areaCordeSotto;
+
     // --- Dati ---
     StringUIdemoAudioProcessor& audioProcessor;
 
@@ -82,6 +87,12 @@ private:
     // Label nota suonata corrente
     juce::Label notaSuonataLabel;
 
+    // Manopole
+    KnobStyle stilePomello;
+    static constexpr int numManopole = 4;
+    juce::Slider manopolaEffetto[numManopole];
+    juce::Label titoloManopolaEffetto[numManopole];
+
     // Costanti layout
     const int numFret = 12;
     const int numCorde = 6;
@@ -93,6 +104,10 @@ private:
     // Stato mouse (evita retriggering sulla stessa posizione)
     int oldPosFret = -1;
     int oldMidiNote = -1;
+
+    // Sezione oscilloscopio
+	// Il parametro 2 indica i due canali stereo (sinistro e destro)
+    juce::AudioVisualiserComponent oscilloscopio{ 2 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StringUIdemoAudioProcessorEditor)
 };
