@@ -282,6 +282,9 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         ai nostri puntatori atomici.
     */
 
+    // (Amplifico al cubo per ottenere un effetto di drive più marcato)
+    float appliedDrive = currentDrive * currentDrive * currentDrive;
+
     #pragma endregion
 
     // Ciclo per ogni canale...
@@ -293,13 +296,16 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 		// Quindi applico la distorsione sample per sample nel buffer del canale
         for (int numSample = 0; numSample < buffer.getNumSamples(); ++numSample) {
 
-			float originalSample = channelData[numSample];
             // Soft Clipping via tangente iperbolica.
-			float distortedSample = std::tanh(originalSample * currentDrive) * currentGain;
-
-			channelData[numSample] = distortedSample;
+			channelData[numSample] = std::tanh(channelData[numSample] * appliedDrive) * currentGain;
         }
     }
+
+    #pragma endregion
+
+    #pragma region Aggiornamento Visualizzazione Sinusoide
+
+    visualiser.pushBuffer(buffer);
 
     #pragma endregion
 }
