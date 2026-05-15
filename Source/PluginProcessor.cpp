@@ -17,21 +17,54 @@ StringUIdemoAudioProcessor::StringUIdemoAudioProcessor()
 #endif
     )
 #endif
+    , apvts(*this, nullptr, "PARAMETERS", createParameters())
 {
     // Inizializzazioni utili...
-	for (int i = 0; i < numStrings; ++i) 
+    for (int i = 0; i < numStrings; ++i) 
     {
         // Inizializzo il tuning corrente con i valori di default
-		currentMidiNotes[i] = defaultMidiNotes[i];
+        currentMidiNotes[i] = defaultMidiNotes[i];
 
         // Inizializzo gli atomic per la UI
-		uiStringWasPlucked[i].store(false);
-		uiPluckPosition[i].store(0.0f);
-	}
+        uiStringWasPlucked[i].store(false);
+        uiPluckPosition[i].store(0.0f);
+    }
 
+    // Prendo i riferimenti ai parametri di controllo dell'effettistica dalla APVTS
+    // (da usare in processBlock) (e quindi da dereferenziare)
+    driveParameter = apvts.getRawParameterValue("drive");
+    gainParameter = apvts.getRawParameterValue("gain");
 }
 
 StringUIdemoAudioProcessor::~StringUIdemoAudioProcessor() {}
+
+
+//==============================================================================
+
+/// <summary>
+/// Passa all'APVTS i parametri che voglio gestire (di tipo RangedAudioParameter) attraverso un vector di unique_ptr
+/// a tali parametri.s
+/// </summary>
+/// <remarks>
+/// Il metodo ".push_back(...)" aggiunge semplicemente una nuova entrata alla fine del vector.
+/// (Simile ad un ".Add(...)" nelle List<T> di C#)
+/// Tencincamente la funzione ritorna una tupla di puntatori all'inizio e alla fine del vector.
+/// Sostanzialmete equivale a paasare il vector stesso.
+/// </remarks>
+juce::AudioProcessorValueTreeState::ParameterLayout StringUIdemoAudioProcessor::createParameters() 
+{
+	// Salvo in un vector i puntatori ai parametri che voglio gestire con l'APVTS (da usare in processBlock)
+    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+
+	// Attraverso il vector, creo i parametri di controllo dell'effettistica e li aggiungo alla APVTS
+    // (ID, nome, min, max, default)
+    // IMPORTANTE: è qui che si manipolano i parametri della manopola associata, NON dall'editor!
+    // (è una conseguenza dell'impiego dell'APVTS)
+	params.push_back(std::make_unique<juce::AudioParameterFloat>("drive", "Drive", 1.0f, 10.0f, 1.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.0f, 1.0f, 0.5f));
+
+	return { params.begin(), params.end() };
+}
 
 //==============================================================================
 void StringUIdemoAudioProcessor::pluckString(int stringIndex, float position)
@@ -171,6 +204,8 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 {
     juce::ScopedNoDenormals noDenormals;
 
+    #pragma region Gestione MIDI
+
     // Gestione dei messaggi MIDI in arrivo
     for (const auto metadata : midiMessages)
     {
@@ -214,6 +249,10 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         }
     }
 
+    #pragma endregion
+
+    #pragma region Generazione Audio & Copia sui Canali
+
     buffer.clear();
 
     float* channelData = buffer.getWritePointer(0);
@@ -223,6 +262,52 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     for (int ch = 1; ch < buffer.getNumChannels(); ++ch)
         buffer.copyFrom(ch, 0, buffer, 0, 0, buffer.getNumSamples());
+
+    #pragma endregion
+
+    #pragma region Aggiunta Distorsione
+
+    #pragma region Variabili di distorsione
+
+    // serve a decidere la ripidità della tangente iperbolica (più alto = più distorto)
+	float currentDrive = driveParameter->load(); 
+
+    // serve a compensare l'aumento di volume intrinseco dell'operazione di distorsione
+	float currentGain = gainParameter->load(); 
+
+    /* Nota:
+        Per accedere ai valori dei parametri non passiamo per l'APVTS (relativamente lento), bensi' ci affidiamo
+		ai puntatori atomici definiti nel "PluginProcessor.h" e inizializzati nel costruttore.
+        Ciò è possibile poiché nel costruttore abbiamo passato i puntatori raw (dei parametri della APVTS)
+        ai nostri puntatori atomici.
+    */
+
+    // (Amplifico al cubo per ottenere un effetto di drive più marcato)
+    float appliedDrive = currentDrive * currentDrive * currentDrive;
+
+    #pragma endregion
+
+    // Ciclo per ogni canale...
+    for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
+
+		// Accedo tramite puntatore al buffer del canale
+		auto* channelData = buffer.getWritePointer(ch);
+
+		// Quindi applico la distorsione sample per sample nel buffer del canale
+        for (int numSample = 0; numSample < buffer.getNumSamples(); ++numSample) {
+
+            // Soft Clipping via tangente iperbolica.
+			channelData[numSample] = std::tanh(channelData[numSample] * appliedDrive) * currentGain;
+        }
+    }
+
+    #pragma endregion
+
+    #pragma region Aggiornamento Visualizzazione Sinusoide
+
+    visualiser.pushBuffer(buffer);
+
+    #pragma endregion
 }
 
 //==============================================================================

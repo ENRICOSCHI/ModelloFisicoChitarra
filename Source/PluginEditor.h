@@ -31,6 +31,17 @@ public:
 
 private:
 
+	// --- Manopole e relative label (drive + gain) ---
+	KnobStyle stilePomello;
+	juce::Label titoloManopoloEffetoDrive;
+	juce::Label titoloManopoloEffetoGain;
+	juce::Slider manopolaEffettoDrive;
+	juce::Slider manopolaEffettoGain;
+
+	// --- Attachment per collegamenti con APVTS (Componente UI <-> Parametro) ---
+	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttachment;
+
 	// --- Callback del Timer --- (Per interazione Audio Thread -> UI Thread per la MIDI)
 	void timerCallback() override;
     /* Permette di controllare periodicamente 
@@ -70,11 +81,6 @@ private:
 
     // Label nota suonata corrente
     juce::Label notaSuonataLabel;
-
-    // Manopole
-    KnobStyle stilePomello;
-    juce::Label titoloManopoloEffeto;
-    juce::Slider manopolaEffetto;
 
     // Costanti layout
     const int numFret = 12;

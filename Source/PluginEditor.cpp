@@ -62,27 +62,88 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     notaSuonataLabel.setFont(juce::FontOptions(13.0f));
     notaSuonataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
-    //manopola
-    manopolaEffetto.setSliderStyle((juce::Slider::Rotary)); //faccio diventare lo slide un cerchio
-    manopolaEffetto.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20); //metto il testo sotto lo slider
-    manopolaEffetto.setNumDecimalPlacesToDisplay(2);//imposto la visione del decimale fino al 0.00
-    manopolaEffetto.setRange(0.0f, 1.0f); //range da 0 a 1
-    manopolaEffetto.setValue(0.5f); //valore iniziale a 0.5
-    manopolaEffetto.setLookAndFeel(&stilePomello); //imposto lo stile del pomello
-    addAndMakeVisible(manopolaEffetto);
-    //titolo manopola
-    titoloManopoloEffeto.setText("Effetto Negro", juce::dontSendNotification);
-    titoloManopoloEffeto.setJustificationType(juce::Justification::centred);
-    titoloManopoloEffeto.setColour(juce::Label::textColourId, juce::Colours::white);
-    addAndMakeVisible(titoloManopoloEffeto);
+    #pragma region Manopole
+
+    #pragma region Manopola Drive
+
+	//manopola drive
+    manopolaEffettoDrive.setSliderStyle((juce::Slider::Rotary)); //faccio diventare lo slide un cerchio
+    manopolaEffettoDrive.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20); //metto il testo sotto lo slider
+    manopolaEffettoDrive.setNumDecimalPlacesToDisplay(2);//imposto la visione del decimale fino al 0.00
+
+    // I valori di range e valore iniziale sono gestiti dall'APVTS in PluginProcessor.cpp!! 
+	// Questo succede poiché tramite gli attachments, la manopola prende direttamente i valori 
+    // dal parametro APVTS (range, valore iniziale) e si aggiorna in tempo reale ad ogni modifica.
+    manopolaEffettoDrive.setRange(1.0f, 10.0f); //range da 1 a 10
+    manopolaEffettoDrive.setValue(1.0f); //valore iniziale a 1.0
+
+    manopolaEffettoDrive.setLookAndFeel(&stilePomello); //imposto lo stile del pomello
+    addAndMakeVisible(manopolaEffettoDrive);
+    //titolo manopola drive
+    titoloManopoloEffetoDrive.setText("Effetto Drive", juce::dontSendNotification);
+    titoloManopoloEffetoDrive.setJustificationType(juce::Justification::centred);
+    titoloManopoloEffetoDrive.setColour(juce::Label::textColourId, juce::Colours::white);
+    addAndMakeVisible(titoloManopoloEffetoDrive);
+
+    #pragma endregion
+
+    #pragma region Manopola Gain
+
+    //manopola gain
+    manopolaEffettoGain.setSliderStyle((juce::Slider::Rotary)); //faccio diventare lo slide un cerchio
+    manopolaEffettoGain.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 60, 20); //metto il testo sotto lo slider
+    manopolaEffettoGain.setNumDecimalPlacesToDisplay(2);//imposto la visione del decimale fino al 0.00
+
+    // I valori di range e valore iniziale sono gestiti dall'APVTS in PluginProcessor.cpp!! 
+    // Questo succede poiché tramite gli attachments, la manopola prende direttamente i valori 
+    // dal parametro APVTS (range, valore iniziale) e si aggiorna in tempo reale ad ogni modifica.
+    manopolaEffettoGain.setRange(0.0f, 1.0f); //range da 0 a 1
+    manopolaEffettoGain.setValue(0.5f); //valore iniziale a 0.5
+
+    manopolaEffettoGain.setLookAndFeel(&stilePomello); //imposto lo stile del pomello
+    addAndMakeVisible(manopolaEffettoGain);
+    //titolo manopola gain
+    titoloManopoloEffetoGain.setText("Effetto Gain", juce::dontSendNotification);
+    titoloManopoloEffetoGain.setJustificationType(juce::Justification::centred);
+    titoloManopoloEffetoGain.setColour(juce::Label::textColourId, juce::Colours::white);
+    addAndMakeVisible(titoloManopoloEffetoGain);
+
+    #pragma endregion
+
+    #pragma endregion
+
+    #pragma region Inizializzazione Visualizzatore Sinusoidale
+
+    audioProcessor.visualiser.setColours(juce::Colours::black, juce::Colours::green);
+    audioProcessor.visualiser.setBufferSize(512);
+    // Prepariamo il visualizzatore a ricevere blocchi audio di dimensione equivalente a quella dei
+    // medesimi blocchi utilizzati dall'AudioProcessor (quindi poi inviati dalla sua componente processBlock)... 
+    audioProcessor.visualiser.setSamplesPerBlock(p.getBlockSize());
+	addAndMakeVisible(audioProcessor.visualiser);
+
+    #pragma endregion
 
     // Inizializza tutte le label di tuning con i valori correnti
     updateAllTuningLabels();
 
     setSize(750, 420);
 
+    #pragma region Timer
+
 	// Avvio il timer per controllare le interazioni Audio Thread -> UI Thread (per la MIDI)
 	startTimerHz(60); // Timer che scade 60 volte al secondo (ogni ~16ms)
+
+    #pragma endregion
+
+    #pragma region Attachments
+    
+    driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+		audioProcessor.apvts, "drive", manopolaEffettoDrive);
+
+	gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+		audioProcessor.apvts, "gain", manopolaEffettoGain);
+
+    #pragma endregion
 }
 
 StringUIdemoAudioProcessorEditor::~StringUIdemoAudioProcessorEditor() 
@@ -140,6 +201,15 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
 
 void StringUIdemoAudioProcessorEditor::resized()
 {
+
+    #pragma region Inserzione Visualizzatore Sinusoidale
+
+    //  Inserisco il visualizzatore sinusoidale sotto il resto della UI
+    /*auto visualizerUIArea;
+    audioProcessor.visualiser.setBounds(visualizerUIArea);*/
+
+    #pragma endregion
+
     // --- Dimensioni area corde ---
     const int stringH = 24;
     const int gap = 6;
@@ -177,10 +247,12 @@ void StringUIdemoAudioProcessorEditor::resized()
     notaSuonataLabel.setBounds(350,200, getWidth() - tuningPanelWidth - 20, 24);
 
     //titolo manopola
-    titoloManopoloEffeto.setBounds(120, 35, 120, 20);
+    titoloManopoloEffetoDrive.setBounds(20, 35, 120, 20);
+    titoloManopoloEffetoGain.setBounds(120, 35, 120, 20);
     
     //manopola
-    manopolaEffetto.setBounds(120, 50, 120, 120);
+	manopolaEffettoDrive.setBounds(20, 50, 120, 120);
+    manopolaEffettoGain.setBounds(120, 50, 120, 120);
 }
 
 //==============================================================================
