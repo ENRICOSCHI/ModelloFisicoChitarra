@@ -31,16 +31,28 @@ public:
 
 private:
 
+    /// --- Titoli delle sezioni ---
+    static constexpr int numSezioni = 6;
+	juce::Label titoloSezione[numSezioni];
+
     // Manopole
     KnobStyle stilePomello;
     // 0: Drive, 1: gain
-    static constexpr int numManopole = 4;
+    static constexpr int numManopole = 10;
     juce::Slider manopolaEffetto[numManopole];
     juce::Label titoloManopolaEffetto[numManopole];
 
 	// --- Attachment per collegamenti con APVTS (Componente UI <-> Parametro) ---
 	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> gainAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> timeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> feedbackAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> hardnessAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dampingAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sustainAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> revMixAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> revSizeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> masterAttachment;
 
 	// --- Callback del Timer --- (Per interazione Audio Thread -> UI Thread per la MIDI)
 	void timerCallback() override;
@@ -67,8 +79,12 @@ private:
     void updateAllTuningLabels();
 
 	// --- Sezioni della UI ---
-    juce::Rectangle<int> areaParametriSinistra;
-    juce::Rectangle<int> areaEffettiDestra;
+    juce::Rectangle<int> areaOscilloscopio;
+    juce::Rectangle<int> areaMaster;
+    juce::Rectangle<int> areaParametriFisici;
+    juce::Rectangle<int> areaDelay;
+    juce::Rectangle<int> areaDistortion;
+    juce::Rectangle<int> areaReverb;
     juce::Rectangle<int> areaCordeSotto;
 
     // --- Dati ---

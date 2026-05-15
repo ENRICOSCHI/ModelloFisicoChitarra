@@ -5,7 +5,8 @@
 StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
-#pragma region Visibilità sfondo corde
+
+#pragma region Visibilita sfondo corde
     // --- Corde visive ---
     for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
     {
@@ -68,16 +69,40 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     notaSuonataLabel.setFont(juce::FontOptions(13.0f));
     notaSuonataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
+#pragma region Setup Titoli Sezioni
+    // Definiamo i nomi delle 6 macro-aree
+    juce::String nomiSezioni[numSezioni] = {
+        "OSCILLOSCOPIO", "MASTER", "PARAMETRI FISICI", "DELAY", "DISTORTION", "REVERB"
+    };
+
+    for (int i = 0; i < numSezioni; ++i)
+    {
+        titoloSezione[i].setText(nomiSezioni[i], juce::dontSendNotification);
+        titoloSezione[i].setJustificationType(juce::Justification::centred);
+        // Usiamo un grigio chiaro per non rubare l'attenzione ai titoli delle manopole
+        titoloSezione[i].setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+        addAndMakeVisible(titoloSezione[i]);
+    }
+#pragma endregion
 
 #pragma region Setup monopole
+
+    // Definizione dei nomi delle manopole (ampliabile)
+    juce::String nomiManopole[numManopole] = {
+        "Time", "Feedback",           // Delay (0, 1)
+        "Drive", "Gain",        // Distortion (2, 3)
+        "Hardness", "Damping", "Sustain", // Physical (4, 5, 6)
+        "Rev Mix", "Rev Size",     // Reverb (7, 8)
+        "Master"                   // Master Section (9)
+    };
+
     // --- Manopole ---
     for (int i = 0; i < numManopole; ++i)
     {
-        // Setup Manopola
         manopolaEffetto[i].setSliderStyle(juce::Slider::Rotary);
         manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
 
-        // Nascondo la box, lasciando solamente il testo
+        // Stile trasparente come richiesto
         manopolaEffetto[i].setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
         manopolaEffetto[i].setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
         manopolaEffetto[i].setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
@@ -85,28 +110,27 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         manopolaEffetto[i].setNumDecimalPlacesToDisplay(2);
         manopolaEffetto[i].setRange(0.0f, 1.0f);
         manopolaEffetto[i].setValue(0.5f);
-        manopolaEffetto[i].setLookAndFeel(&stilePomello); // Usiamo lo stesso stile per tutte
+        manopolaEffetto[i].setLookAndFeel(&stilePomello);
         addAndMakeVisible(manopolaEffetto[i]);
 
-        // Setup Titolo
-        titoloManopolaEffetto[i].setText("Effetto " + juce::String(i + 1), juce::dontSendNotification);
+        titoloManopolaEffetto[i].setText(nomiManopole[i], juce::dontSendNotification);
         titoloManopolaEffetto[i].setJustificationType(juce::Justification::centred);
         titoloManopolaEffetto[i].setColour(juce::Label::textColourId, juce::Colours::white);
         addAndMakeVisible(titoloManopolaEffetto[i]);
     }
 #pragma endregion
 
-    setSize(1280, 720);
+    setSize(1024, 576);
 
     // Rende la finestra ridimensionabile (questo è possibile grazie ai LocalBounds settati in precedenza)
-    setResizable(true, true);
+    // setResizable(true, true);
 
     // Limiti di dimensione della finestra
-    setResizeLimits(1280, 720, 1500, 840);
+    // setResizeLimits(1280, 720, 1500, 840);
 
     // Blocco delle proporzioni (Così si scala solo in obliquo)
-    if (auto* constrainer = getConstrainer())
-        constrainer->setFixedAspectRatio(1280.0 / 720.0);
+    //if (auto* constrainer = getConstrainer())
+        // constrainer->setFixedAspectRatio(1280.0 / 720.0);
 
     #pragma region Timer
 
@@ -116,12 +140,27 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     #pragma endregion
 
     #pragma region Attachments
-    
-    driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-		audioProcessor.apvts, "drive", manopolaEffetto[0]);
 
-	gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-		audioProcessor.apvts, "gain", manopolaEffetto[1]);
+    timeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "delayTime", manopolaEffetto[0]);
+    feedbackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "delayFb", manopolaEffetto[1]);
+    driveAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "drive", manopolaEffetto[2]);
+    gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "gain", manopolaEffetto[3]);
+    hardnessAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "hardness", manopolaEffetto[4]);
+    dampingAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "damping", manopolaEffetto[5]);
+    sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "sustain", manopolaEffetto[6]);
+    revMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "revMix", manopolaEffetto[7]);
+    revSizeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "revSize", manopolaEffetto[8]);
+    masterAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        audioProcessor.apvts, "master", manopolaEffetto[9]);
 
     #pragma endregion
 }
@@ -183,14 +222,18 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
     SetStrings(g);
     SetSeparationFret(g);
 
-#pragma region Disegno suddivisione delle aree
-    // Imposta un colore semitrasparente per evidenziare le aree
-    g.setColour(juce::Colours::white.withAlpha(0.2f));
+    #pragma region Disegno suddivisione delle aree
+        // Imposta un colore semitrasparente per evidenziare le aree
+        g.setColour(juce::Colours::white.withAlpha(0.2f));
 
-    // Disegna un bordo
-    g.drawRect(areaParametriSinistra.reduced(4), 2.0f);
-    g.drawRect(areaEffettiDestra.reduced(4), 2.0f);
-#pragma endregion
+        // Disegna un bordo per ognuno dei riquadri
+        g.drawRect(areaOscilloscopio.reduced(4), 2.0f);
+        g.drawRect(areaMaster.reduced(4), 2.0f);
+        g.drawRect(areaParametriFisici.reduced(4), 2.0f);
+        g.drawRect(areaDelay.reduced(4), 2.0f);
+        g.drawRect(areaDistortion.reduced(4), 2.0f);
+        g.drawRect(areaReverb.reduced(4), 2.0f);
+    #pragma endregion
 }
 
 #pragma endregion
@@ -249,46 +292,100 @@ void StringUIdemoAudioProcessorEditor::resized()
     #pragma endregion
 
     #pragma region Area superiore scalata
-        // --- AREA SUPERIORE SCALATA ---
+		// --- SETUP AREA SUPERIORE SCALATA ---
         area.removeFromTop(30 * scale);
         auto notaSuonataArea = area.removeFromBottom(19 * scale);
         notaSuonataLabel.setBounds(notaSuonataArea.withSizeKeepingCentre(538 * scale, 20 * scale).translated(0, -2 * scale));
         notaSuonataLabel.setFont(juce::FontOptions(10.0f * scale));
 
-        auto leftParamsArea = area.removeFromLeft(area.getWidth() / 2);
-        auto rightEffectsArea = area;
+        // Divisione Principale: 1/3 a Sinistra, 2/3 a Destra
+        auto leftArea = area.removeFromLeft(area.getWidth() / 3);
+        auto rightArea = area;
 
-        areaParametriSinistra = leftParamsArea;
-        areaEffettiDestra = rightEffectsArea;
+        // Sub-divisione Sinistra (Oscilloscopio e Master)
+        areaOscilloscopio = leftArea.removeFromTop(leftArea.getHeight() / 2);
+        areaMaster = leftArea;
+
+        // Sub-divisione Destra (Fisica in alto, Effetti in basso)
+        areaParametriFisici = rightArea.removeFromTop(rightArea.getHeight() / 2);
+
+        // Sub-divisione Effetti (3 colonne uguali)
+        auto bottomEffectsArea = rightArea;
+        areaDelay = bottomEffectsArea.removeFromLeft(bottomEffectsArea.getWidth() / 3);
+        areaDistortion = bottomEffectsArea.removeFromLeft(bottomEffectsArea.getWidth() / 2); // La metà di ciò che resta equivale a 1/3 del totale
+        areaReverb = bottomEffectsArea;
     #pragma endregion
 
     #pragma region Griglia manopole scalata
-        // --- GRIGLIA MANOPOLE SCALATA ---
-        auto workArea = rightEffectsArea.reduced(10 * scale);
-        auto topRow = workArea.removeFromTop(workArea.getHeight() / 2);
-        auto bottomRow = workArea;
+        // --- ASSEGNAZIONE TITOLI E MANOPOLE ---
+        juce::Rectangle<int> celle[10];
 
-        juce::Rectangle<int> celleManopole[4];
-        celleManopole[0] = topRow.removeFromLeft(topRow.getWidth() / 2);
-        celleManopole[1] = topRow;
-        celleManopole[2] = bottomRow.removeFromLeft(bottomRow.getWidth() / 2);
-        celleManopole[3] = bottomRow;
+        // Creiamo delle "copie di lavoro" delle aree. 
+        // In questo modo non rimpiccioliamo le aree originali usate dal paint() per i bordi
+        auto workOsc = areaOscilloscopio;
+        auto workMaster = areaMaster;
+        auto workPhys = areaParametriFisici;
+        auto workDelay = areaDelay;
+        auto workDist = areaDistortion;
+        auto workRev = areaReverb;
+
+        // Ritagliamo 25 pixel dall'alto di ogni area per far spazio ai titoli
+        int titleHeight = 25 * scale;
+        titoloSezione[0].setBounds(workOsc.removeFromTop(titleHeight));
+        titoloSezione[1].setBounds(workMaster.removeFromTop(titleHeight));
+        titoloSezione[2].setBounds(workPhys.removeFromTop(titleHeight));
+        titoloSezione[3].setBounds(workDelay.removeFromTop(titleHeight));
+        titoloSezione[4].setBounds(workDist.removeFromTop(titleHeight));
+        titoloSezione[5].setBounds(workRev.removeFromTop(titleHeight));
+
+        // Scaliamo il font dei titoli
+        for (int i = 0; i < numSezioni; ++i)
+            titoloSezione[i].setFont(juce::FontOptions(13.0f * scale, juce::Font::bold));
+
+        // --- DISTRIBUZIONE NELLE AREE DI LAVORO ---
+
+        // 1. DELAY (Celle 0, 1)
+        auto delayArea = workDelay.reduced(5 * scale, 5 * scale);
+        celle[0] = delayArea.removeFromLeft(delayArea.getWidth() / 2);
+        celle[1] = delayArea;
+
+        // 2. DISTORTION (Celle 2, 3)
+        // Riduciamo un po' i margini (5 invece di 10) visto che il titolo ha già rubato spazio
+        auto distArea = workDist.reduced(5 * scale, 5 * scale);
+        celle[2] = distArea.removeFromLeft(distArea.getWidth() / 2);
+        celle[3] = distArea;
+
+
+        // 3. PARAMETRI FISICI (Celle 4, 5, 6)
+        auto physArea = workPhys.reduced(5 * scale, 5 * scale);
+        celle[4] = physArea.removeFromLeft(physArea.getWidth() / 3);
+        celle[5] = physArea.removeFromLeft(physArea.getWidth() / 2);
+        celle[6] = physArea;
+
+        // 4. REVERB (Celle 7, 8)
+        auto verbArea = workRev.reduced(5 * scale, 5 * scale);
+        celle[7] = verbArea.removeFromLeft(verbArea.getWidth() / 2);
+        celle[8] = verbArea;
+
+        // 5. MASTER VOLUME (Cella 9)
+        celle[9] = workMaster.reduced(5 * scale, 5 * scale);
+
+        // --- CICLO DI POSIZIONAMENTO FINALE ---
+        // Impostiamo un diametro fisso e uguale per tutte le manopole.
+        int uniformKnobSize = 55 * scale;
 
         for (int i = 0; i < numManopole; ++i)
         {
-            // Visto che la cella mantiene sempre la stessa proporzione, 
-            // la manopola occupa il 75% dello spazio della cella
-            int dynamicKnobSize = celleManopole[i].getWidth() * 0.35f;
+            // Centriamo la manopola nella sua cella usando la dimensione fissa
+            auto bounds = celle[i].withSizeKeepingCentre(uniformKnobSize, uniformKnobSize).translated(0, 5 * scale);
+            manopolaEffetto[i].setBounds(bounds);
 
-            auto manopolaBounds = celleManopole[i].withSizeKeepingCentre(dynamicKnobSize, dynamicKnobSize);
-            manopolaEffetto[i].setBounds(manopolaBounds);
+            // Grandezza della casella di testo col numero sotto la manopola
+            manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40 * scale, 15 * scale);
 
-            // Scala il testo dentro lo slider della manopola
-            manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 25 * scale, 10 * scale);
-
-            titoloManopolaEffetto[i].setBounds(manopolaBounds.getX(), manopolaBounds.getY() - (12 * scale), dynamicKnobSize, 20 * scale);
-            // Scala il font dei titoli
-            titoloManopolaEffetto[i].setFont(juce::FontOptions(10.0f * scale));
+            // Posizioniamo il titolo della manopola centrato rispetto alla LARGHEZZA TOTALE DELLA CELLA
+            titoloManopolaEffetto[i].setBounds(celle[i].getX(), bounds.getY() - (18 * scale), celle[i].getWidth(), 20 * scale);
+            titoloManopolaEffetto[i].setFont(juce::FontOptions(13.0f * scale, juce::Font::bold));
         }
     #pragma endregion
 
@@ -307,8 +404,8 @@ void StringUIdemoAudioProcessorEditor::resized()
         addAndMakeVisible(oscilloscopio);
 
         // Posizionamento dell'oscilloscopio
-        oscilloscopio.setBounds(areaParametriSinistra.reduced(10 * scale));
-    #pragma endregion
+        oscilloscopio.setBounds(workOsc.reduced(10 * scale));    
+#pragma endregion
 }
 
 #pragma endregion
