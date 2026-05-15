@@ -30,11 +30,6 @@ public:
 
     #pragma endregion
 
-    #pragma region Variabili per Visualizzazione Sinusoide (UI)
-
-	juce::AudioVisualiserComponent visualiser{ numStrings };
-
-    #pragma endregion
 
 
     StringUIdemoAudioProcessor();

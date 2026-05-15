@@ -112,16 +112,6 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
 
     #pragma endregion
 
-    #pragma region Inizializzazione Visualizzatore Sinusoidale
-
-    audioProcessor.visualiser.setColours(juce::Colours::black, juce::Colours::green);
-    audioProcessor.visualiser.setBufferSize(512);
-    // Prepariamo il visualizzatore a ricevere blocchi audio di dimensione equivalente a quella dei
-    // medesimi blocchi utilizzati dall'AudioProcessor (quindi poi inviati dalla sua componente processBlock)... 
-    audioProcessor.visualiser.setSamplesPerBlock(p.getBlockSize());
-	addAndMakeVisible(audioProcessor.visualiser);
-
-    #pragma endregion
 
     // Inizializza tutte le label di tuning con i valori correnti
     updateAllTuningLabels();
@@ -201,15 +191,6 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
 
 void StringUIdemoAudioProcessorEditor::resized()
 {
-
-    #pragma region Inserzione Visualizzatore Sinusoidale
-
-    //  Inserisco il visualizzatore sinusoidale sotto il resto della UI
-    /*auto visualizerUIArea;
-    audioProcessor.visualiser.setBounds(visualizerUIArea);*/
-
-    #pragma endregion
-
     // --- Dimensioni area corde ---
     const int stringH = 24;
     const int gap = 6;

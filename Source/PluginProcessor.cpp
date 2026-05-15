@@ -303,11 +303,6 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     #pragma endregion
 
-    #pragma region Aggiornamento Visualizzazione Sinusoide
-
-    visualiser.pushBuffer(buffer);
-
-    #pragma endregion
 }
 
 //==============================================================================
