@@ -33,15 +33,10 @@ private:
 
     // Manopole
     KnobStyle stilePomello;
+    // 0: Drive, 1: gain
     static constexpr int numManopole = 4;
     juce::Slider manopolaEffetto[numManopole];
     juce::Label titoloManopolaEffetto[numManopole];
-
-	//// --- Manopole e relative label (drive + gain) ---
-	//juce::Label titoloManopoloEffetoDrive;
-	//juce::Label titoloManopoloEffetoGain;
-	//juce::Slider manopolaEffettoDrive;
-	//juce::Slider manopolaEffettoGain;
 
 	// --- Attachment per collegamenti con APVTS (Componente UI <-> Parametro) ---
 	std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> driveAttachment;

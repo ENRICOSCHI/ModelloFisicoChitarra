@@ -5,14 +5,16 @@
 StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
-    
+#pragma region Visibilità sfondo corde
     // --- Corde visive ---
     for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
     {
         auto* sc = stringComponents.add(new StringComponent(stringColour(i)));
         addAndMakeVisible(sc);
     }
+#pragma endregion
 
+#pragma region accordatura corde setup
     // --- Controlli tuning (uno per corda) ---
     for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
     {
@@ -56,13 +58,19 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         };
     addAndMakeVisible(resetTuningButton);
 
+    // Inizializza tutte le label di tuning con i valori correnti
+    updateAllTuningLabels();
+#pragma endregion
+
     // --- Label nota suonata ---
     addAndMakeVisible(notaSuonataLabel);
     notaSuonataLabel.setText("Nota", juce::NotificationType::dontSendNotification);
     notaSuonataLabel.setFont(juce::FontOptions(13.0f));
     notaSuonataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 
-	// --- Manopole ---
+
+#pragma region Setup monopole
+    // --- Manopole ---
     for (int i = 0; i < numManopole; ++i)
     {
         // Setup Manopola
@@ -86,9 +94,7 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         titoloManopolaEffetto[i].setColour(juce::Label::textColourId, juce::Colours::white);
         addAndMakeVisible(titoloManopolaEffetto[i]);
     }
-
-    // Inizializza tutte le label di tuning con i valori correnti
-    updateAllTuningLabels();
+#pragma endregion
 
     setSize(1280, 720);
 
@@ -129,6 +135,7 @@ StringUIdemoAudioProcessorEditor::~StringUIdemoAudioProcessorEditor()
 //==============================================================================
 
 // Override del Callback del timer come specificato in PluginEditor.h
+// Controllo la corda suonata da tastiera MIDI
 void StringUIdemoAudioProcessorEditor::timerCallback() 
 {
     // Controllo per ogni corda se la rispettiva flag è stata alzata dall'Audio Thread (processBlock)
@@ -176,16 +183,14 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
     SetStrings(g);
     SetSeparationFret(g);
 
-    // Disegno delle aree
-    
+#pragma region Disegno suddivisione delle aree
     // Imposta un colore semitrasparente per evidenziare le aree
-	g.setColour(juce::Colours::white.withAlpha(0.2f));
+    g.setColour(juce::Colours::white.withAlpha(0.2f));
 
     // Disegna un bordo
     g.drawRect(areaParametriSinistra.reduced(4), 2.0f);
-	g.drawRect(areaEffettiDestra.reduced(4), 2.0f);
-
-
+    g.drawRect(areaEffettiDestra.reduced(4), 2.0f);
+#pragma endregion
 }
 
 #pragma endregion
@@ -344,7 +349,7 @@ void StringUIdemoAudioProcessorEditor::handleMouseEvent(const juce::MouseEvent& 
 }
 
 //==============================================================================
-
+#pragma region Metodi Accordatura
 /// <summary>
 /// Tuning label: mostra nome nota base + delta in semitoni rispetto al default.
 /// Es.: "E2 (+2)" oppure "E2 (-1)" oppure "E2"
@@ -379,8 +384,11 @@ void StringUIdemoAudioProcessorEditor::updateAllTuningLabels()
     for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
         updateTuningLabel(i);
 }
+#pragma endregion
+
 
 //==============================================================================
+#pragma region Metodi disegni UI
 void StringUIdemoAudioProcessorEditor::SetTitle(juce::Graphics& g)
 {
     float scale = (float)getWidth() / 750.0f;
@@ -429,4 +437,5 @@ void StringUIdemoAudioProcessorEditor::SetSeparationFret(juce::Graphics& g)
         float x = startX + i * fretW;
         g.fillRect((int)x, sc->getY(), 3, sc->getHeight() * (numCorde + 1));
     }
+#pragma endregion
 }

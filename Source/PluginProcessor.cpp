@@ -30,10 +30,12 @@ StringUIdemoAudioProcessor::StringUIdemoAudioProcessor()
         uiPluckPosition[i].store(0.0f);
     }
 
+#pragma region APVTS parameters
     // Prendo i riferimenti ai parametri di controllo dell'effettistica dalla APVTS
     // (da usare in processBlock) (e quindi da dereferenziare)
     driveParameter = apvts.getRawParameterValue("drive");
     gainParameter = apvts.getRawParameterValue("gain");
+#pragma endregion
 }
 
 StringUIdemoAudioProcessor::~StringUIdemoAudioProcessor() {}
@@ -67,6 +69,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout StringUIdemoAudioProcessor::
 }
 
 //==============================================================================
+/// <summary>
+/// Suono la corda
+/// </summary>
+/// <param name="stringIndex"></param>
+/// <param name="position"></param>
 void StringUIdemoAudioProcessor::pluckString(int stringIndex, float position)
 {
     if (stringIndex < 0 || stringIndex >= stringSynths.size())
