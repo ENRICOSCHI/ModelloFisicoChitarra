@@ -89,6 +89,7 @@ private:
 	// Puntatori atomici (thread-safe) per i parametri di controllo dell'effettistica
 	std::atomic<float>* driveParameter = nullptr;
     std::atomic<float>* gainParameter = nullptr;
+    std::atomic<float>* hardnessParameter = nullptr;
 
     #pragma endregion
 

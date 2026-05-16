@@ -38,6 +38,7 @@ public:
     /// <param name="pluckPositionRelative"></param>
     void stringPlucked(float pluckPositionRelative)
     {
+
         //pluckPositionRelative è un valore tra 0 e 1 della posizione nella corda
         //calcolo l'ampiezza della vibrazione
         amplitude = maxAmplitude * std::sin(pluckPositionRelative * juce::MathConstants<float>::pi);
