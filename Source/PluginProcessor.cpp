@@ -67,7 +67,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout StringUIdemoAudioProcessor::
     // IMPORTANTE: è qui che si manipolano i parametri della manopola associata, NON dall'editor!
     // (è una conseguenza dell'impiego dell'APVTS)
 	params.push_back(std::make_unique<juce::AudioParameterFloat>("drive", "Drive", 1.0f, 10.0f, 1.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.0f, 1.0f, 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.1f, 1.0f, 0.5f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("hardness", "Hardness", 0.01f, 1.0f, 0.5f)); //non min = 0 perchè altrimenti si muta l'audio
     params.push_back(std::make_unique<juce::AudioParameterFloat>("damping", "Damping", 0.0f, 1.0f, 1.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain", 0.0f, 1.0f, 1.0f));

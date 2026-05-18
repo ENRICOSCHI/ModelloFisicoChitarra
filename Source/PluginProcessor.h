@@ -28,6 +28,7 @@ public:
     std::atomic<bool> uiStringWasPlucked[numStrings];
 	std::atomic<float> uiPluckPosition[numStrings];
 
+
     #pragma endregion
 
 
