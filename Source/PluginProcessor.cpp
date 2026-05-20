@@ -75,15 +75,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout StringUIdemoAudioProcessor::
     params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.1f, 1.0f, 0.5f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("hardness", "Hardness", 0.01f, 1.0f, 0.5f)); //non min = 0 perchè altrimenti si muta l'audio
     
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("damping", "Damping", 0.0f, 100.0f, 100.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain", 0.0f, 100.0f, 100.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("revMix", "Rev Mix", 0.0f, 100.0f, 50.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("revSize", "Rev Size", 0.0f, 100.0f, 50.0f));
+    params.push_back(std::make_unique<juce::AudioParameterInt>("damping", "Damping", 0, 100, 100));
+    params.push_back(std::make_unique<juce::AudioParameterInt>("sustain", "Sustain", 0, 100, 100));
+    params.push_back(std::make_unique<juce::AudioParameterInt>("revMix", "Rev Mix", 0, 100, 50));
+    params.push_back(std::make_unique<juce::AudioParameterInt>("revSize", "Rev Size", 0, 100, 50));
 
     params.push_back(std::make_unique<juce::AudioParameterFloat>("delayTime", "Time", 0.01f, 1.5f, 0.4f)); // Time va da 0.01 secondi (slapback) a 1.5 secondi (eco lungo)
     
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("delayFb", "Feedback", 0.0f, 95.0f, 50.0f)); // Il feedback arriva massimo a 0.95 per evitare fischi infiniti
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("masterVolume", "Master Volume", 0.0f, 100.0f, 50.0f));
+    params.push_back(std::make_unique<juce::AudioParameterInt>("delayFb", "Feedback", 0, 95, 50)); // Il feedback arriva massimo a 0.95 per evitare fischi infiniti
+    params.push_back(std::make_unique<juce::AudioParameterInt>("masterVolume", "Master Volume", 0, 100, 50));
     /*
     * 
     */

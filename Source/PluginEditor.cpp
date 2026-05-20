@@ -110,18 +110,11 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         if (nomiManopole[i] == "Time")
         {
             manopolaEffetto[i].setTextValueSuffix(" s");
-            manopolaEffetto[i].setNumDecimalPlacesToDisplay(2);
         }
-        else if (nomiManopole[i] == "Feedback" || nomiManopole[i] == "Damping" ||
-            nomiManopole[i] == "Sustain" || nomiManopole[i] == "Rev Mix" ||
-            nomiManopole[i] == "Rev Size" || nomiManopole[i] == "Master")
+        else if (nomiManopole[i] != "Drive" && nomiManopole[i] != "Gain" && nomiManopole[i] != "Hardness")
         {
-            manopolaEffetto[i].setNumDecimalPlacesToDisplay(0); // 0 decimali per le percentuali
+            // Per esclusione, rimangono solo le 6 manopole in percentuale
             manopolaEffetto[i].setTextValueSuffix(" %");
-        }
-        else
-        {
-            manopolaEffetto[i].setNumDecimalPlacesToDisplay(2); // Drive, Gain, Hardness
         }
 
         manopolaEffetto[i].setLookAndFeel(&stilePomello);
