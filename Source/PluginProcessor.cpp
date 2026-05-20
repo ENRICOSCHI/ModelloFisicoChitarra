@@ -1,9 +1,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-// Accordatura standard: E2=40, A2=45, D3=50, G3=55, B3=59, E4=64
+// Accordatura standard: E2=64, A2=59, D3=55, G3=50, B3=45, E4=40
 const int StringUIdemoAudioProcessor::defaultMidiNotes[StringUIdemoAudioProcessor::numStrings]
-= { 40, 45, 50, 55, 59, 64 };
+= { 64, 59, 55, 50, 45, 40 };
 
 //==============================================================================
 StringUIdemoAudioProcessor::StringUIdemoAudioProcessor()
@@ -74,13 +74,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout StringUIdemoAudioProcessor::
 	params.push_back(std::make_unique<juce::AudioParameterFloat>("drive", "Drive", 1.0f, 10.0f, 1.0f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("gain", "Gain", 0.1f, 1.0f, 0.5f));
     params.push_back(std::make_unique<juce::AudioParameterFloat>("hardness", "Hardness", 0.01f, 1.0f, 0.5f)); //non min = 0 perchè altrimenti si muta l'audio
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("damping", "Damping", 0.0f, 1.0f, 1.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain", 0.0f, 1.0f, 1.0f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("revMix", "Rev Mix", 0.0f, 1.0f, 0.5f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("revSize", "Rev Size", 0.0f, 1.0f, 0.5f));
+    
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("damping", "Damping", 0.0f, 100.0f, 100.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain", 0.0f, 100.0f, 100.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("revMix", "Rev Mix", 0.0f, 100.0f, 50.0f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("revSize", "Rev Size", 0.0f, 100.0f, 50.0f));
+
     params.push_back(std::make_unique<juce::AudioParameterFloat>("delayTime", "Time", 0.01f, 1.5f, 0.4f)); // Time va da 0.01 secondi (slapback) a 1.5 secondi (eco lungo)
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("delayFb", "Feedback", 0.0f, 0.95f, 0.5f)); // Il feedback arriva massimo a 0.95 per evitare fischi infiniti
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("masterVolume", "Master Volume", 0.0f, 1.0f, 0.5f));
+    
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("delayFb", "Feedback", 0.0f, 95.0f, 50.0f)); // Il feedback arriva massimo a 0.95 per evitare fischi infiniti
+    params.push_back(std::make_unique<juce::AudioParameterFloat>("masterVolume", "Master Volume", 0.0f, 100.0f, 50.0f));
     /*
     * 
     */
@@ -301,8 +304,8 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         //Assegno l'hardness corrente su tutte le corde
         stringSynths.getUnchecked(i)->SetHardness(hardnessParameter->load());
         //assegno i valori attuali di damp e sustain
-        stringSynths.getUnchecked(i)->SetDamping(dampingParameter->load());
-        stringSynths.getUnchecked(i)->SetSustain(sustainParameter->load());
+        stringSynths.getUnchecked(i)->SetDamping(dampingParameter->load() / 100.0f);
+        stringSynths.getUnchecked(i)->SetSustain(sustainParameter->load() / 100.0f);
     }
 
     for (int i = 0; i < stringSynths.size(); ++i)
@@ -355,7 +358,7 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
         // 1. Leggiamo i parametri dalla UI
         float timeInSeconds = delayTimeParameter->load();
-        float feedback = delayFbParameter->load();
+        float feedback = delayFbParameter->load() / 100.0f;
 
         // Calcoliamo a quanti "campioni" corrisponde il ritardo in secondi
         int delayLengthInSamples = (int)(timeInSeconds * currentSampleRate);
@@ -403,9 +406,9 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     #pragma region Aggiunta Reverb
 
         // 1. Aggiorniamo i parametri del riverbero leggendo i valori dalle manopole
-        float mix = revMixParameter->load();
+        float mix = revMixParameter->load() / 100.0f;
 
-        reverbParams.roomSize = revSizeParameter->load(); // Da 0.0 (stanza piccola) a 1.0 (chiesa)
+        reverbParams.roomSize = revSizeParameter->load() / 100.0f; // Da 0.0 (stanza piccola) a 1.0 (chiesa)
         reverbParams.damping = 0.5f; // Fisso, oppure potresti aggiungere una manopola in futuro
         reverbParams.width = 1.0f;   // Massima ampiezza stereo
 
@@ -428,7 +431,7 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
     #pragma endregion
 
     #pragma region Applicazione Master Volume
-        float masterVolume = masterVolumeParameter->load();
+        float masterVolume = masterVolumeParameter->load() / 100.0f;
         for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
 		    auto* channelData = buffer.getWritePointer(ch);
             for (int numSample = 0; numSample < buffer.getNumSamples(); ++numSample) {

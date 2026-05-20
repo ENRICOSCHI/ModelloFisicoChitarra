@@ -72,7 +72,7 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
 #pragma region Setup Titoli Sezioni
     // Definiamo i nomi delle 6 macro-aree
     juce::String nomiSezioni[numSezioni] = {
-        "OSCILLOSCOPIO", "MASTER", "PARAMETRI FISICI", "DELAY", "DISTORTION", "REVERB"
+        "OSCILLOSCOPIO", "MASTER VOLUME", "PARAMETRI FISICI", "DELAY", "DISTORTION", "REVERB"
     };
 
     for (int i = 0; i < numSezioni; ++i)
@@ -102,14 +102,28 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         manopolaEffetto[i].setSliderStyle(juce::Slider::Rotary);
         manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
 
-        // Stile trasparente come richiesto
         manopolaEffetto[i].setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
         manopolaEffetto[i].setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
         manopolaEffetto[i].setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
 
-        manopolaEffetto[i].setNumDecimalPlacesToDisplay(2);
-        manopolaEffetto[i].setRange(0.0f, 1.0f);
-        manopolaEffetto[i].setValue(0.5f);
+        // --- Sezione per le unità di misura e decimali ---
+        if (nomiManopole[i] == "Time")
+        {
+            manopolaEffetto[i].setTextValueSuffix(" s");
+            manopolaEffetto[i].setNumDecimalPlacesToDisplay(2);
+        }
+        else if (nomiManopole[i] == "Feedback" || nomiManopole[i] == "Damping" ||
+            nomiManopole[i] == "Sustain" || nomiManopole[i] == "Rev Mix" ||
+            nomiManopole[i] == "Rev Size" || nomiManopole[i] == "Master")
+        {
+            manopolaEffetto[i].setNumDecimalPlacesToDisplay(0); // 0 decimali per le percentuali
+            manopolaEffetto[i].setTextValueSuffix(" %");
+        }
+        else
+        {
+            manopolaEffetto[i].setNumDecimalPlacesToDisplay(2); // Drive, Gain, Hardness
+        }
+
         manopolaEffetto[i].setLookAndFeel(&stilePomello);
         addAndMakeVisible(manopolaEffetto[i]);
 
@@ -494,7 +508,7 @@ void StringUIdemoAudioProcessorEditor::SetTitle(juce::Graphics& g)
     // Scaliamo il font del titolo (da 18 a 18 * scale)
     g.setFont(juce::FontOptions(18.0f * scale, juce::Font::bold));
 
-    g.drawText("MODELLAZIONE FISICA CHITTARA", 0, 5 * scale, getWidth(), 30 * scale, juce::Justification::centred);      
+    g.drawText("MODELLAZIONE FISICA CHITARRA", 0, 5 * scale, getWidth(), 30 * scale, juce::Justification::centred);      
 }
 
 void StringUIdemoAudioProcessorEditor::SetLineaSeparatrice(juce::Graphics& g)
