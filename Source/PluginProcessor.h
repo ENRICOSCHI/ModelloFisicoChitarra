@@ -16,6 +16,10 @@ public:
     // Range MIDI consentito per il tuning (±12 semitoni rispetto al default)
     static const int tuningRangeSemitones = 12;
 
+    // Variabili per il meter del volume in decibel
+    std::atomic<float> masterRmsLeft{ -60.0f }; // Valore RMS in decibel per il canale sinistro
+    std::atomic<float> masterRmsRight{ -60.0f }; // Valore RMS in decibel per il canale destro
+
     #pragma region Variabile APVTS per controllo Effettistica (UI)
 
     juce::AudioProcessorValueTreeState apvts;
@@ -109,7 +113,6 @@ private:
     juce::AudioBuffer<float> delayBuffer;
     int delayWritePosition = 0;
     double currentSampleRate = 44100.0;
-
 
     // Nota MIDI base per ciascuna corda (modificabile dal tuning UI)
     int currentMidiNotes[numStrings];

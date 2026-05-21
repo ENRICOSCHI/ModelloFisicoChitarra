@@ -79,8 +79,8 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     {
         titoloSezione[i].setText(nomiSezioni[i], juce::dontSendNotification);
         titoloSezione[i].setJustificationType(juce::Justification::centred);
-        // Usiamo un grigio chiaro per non rubare l'attenzione ai titoli delle manopole
-        titoloSezione[i].setColour(juce::Label::textColourId, juce::Colours::lightgrey);
+        // Usiamo un grigio per non rubare l'attenzione ai titoli delle manopole
+        titoloSezione[i].setColour(juce::Label::textColourId, juce::Colours::grey);
         addAndMakeVisible(titoloSezione[i]);
     }
 #pragma endregion
@@ -106,7 +106,7 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
         manopolaEffetto[i].setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
         manopolaEffetto[i].setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
 
-        // --- Sezione per le unità di misura e decimali ---
+        // --- Sezione per le unità di misura ---
         if (nomiManopole[i] == "Time")
         {
             manopolaEffetto[i].setTextValueSuffix(" s");
@@ -128,16 +128,6 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
 #pragma endregion
 
     setSize(1024, 576);
-
-    // Rende la finestra ridimensionabile (questo è possibile grazie ai LocalBounds settati in precedenza)
-    // setResizable(true, true);
-
-    // Limiti di dimensione della finestra
-    // setResizeLimits(1280, 720, 1500, 840);
-
-    // Blocco delle proporzioni (Così si scala solo in obliquo)
-    //if (auto* constrainer = getConstrainer())
-        // constrainer->setFixedAspectRatio(1280.0 / 720.0);
 
     #pragma region Timer
 
@@ -214,6 +204,25 @@ void StringUIdemoAudioProcessorEditor::timerCallback()
         }
     }
 
+    #pragma region Lettura Volume Meter
+        // Leggiamo i decibel (-60 dB silenzio, 0 dB massimo)
+        float rmsL = audioProcessor.masterRmsLeft.load();
+        float rmsR = audioProcessor.masterRmsRight.load();
+
+        // Mappiamo i decibel in un valore visivo da 0.0 (vuoto) a 1.0 (pieno)
+        // Il range standard è da -60 dB a +3 dB
+        float newLevelL = juce::jmap(rmsL, -60.0f, +3.0f, 0.0f, 1.0f);
+        float newLevelR = juce::jmap(rmsR, -60.0f, +3.0f, 0.0f, 1.0f);
+
+        // Limitiamo tra 0 e 1 per evitare errori grafici
+        levelLeftScaled = juce::jlimit(0.0f, 1.0f, newLevelL);
+        levelRightScaled = juce::jlimit(0.0f, 1.0f, newLevelR);
+
+        // Diciamo a JUCE di ridisegnare solo la zona dei meter, per non appesantire la CPU
+        repaint(meterLeftArea.expanded(2));
+        repaint(meterRightArea.expanded(2));
+    #pragma endregion
+
 }
 
 //==============================================================================
@@ -230,8 +239,7 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
     SetSeparationFret(g);
 
     #pragma region Disegno suddivisione delle aree
-    // Usiamo il tuo colore marrone/grigio (lo stesso della linea separatrice)
-    // ma aggiungiamo un po' di trasparenza (0.4f) per fonderlo morbidamente con lo sfondo nero/marrone.
+    // Usiamo il colore marrone dandogli una leggera trasparenza
     g.setColour(juce::Colour(0xFF4D453A).withAlpha(0.4f));
 
     // Riempiamo le aree con rettangoli arrotondati invece di usare drawRect.
@@ -244,6 +252,37 @@ void StringUIdemoAudioProcessorEditor::paint(juce::Graphics& g)
     g.fillRoundedRectangle(areaDelay.reduced(4).toFloat(), cornerRadius);
     g.fillRoundedRectangle(areaDistortion.reduced(4).toFloat(), cornerRadius);
     g.fillRoundedRectangle(areaReverb.reduced(4).toFloat(), cornerRadius);
+    #pragma endregion
+
+    #pragma region Disegno Volume Meter
+        // Sfondo scuro delle barrette (senza suono)
+        g.setColour(juce::Colours::black.withAlpha(0.5f));
+        g.fillRoundedRectangle(meterLeftArea.toFloat(), 2.0f);
+        g.fillRoundedRectangle(meterRightArea.toFloat(), 2.0f);
+
+        // Creiamo un gradiente verde per il volume (Verde in basso -> Giallo -> Rosso in alto)
+        juce::ColourGradient meterGrad(
+            juce::Colours::red, meterLeftArea.getX(), meterLeftArea.getY(),
+            juce::Colours::limegreen, meterLeftArea.getX(), meterLeftArea.getBottom(),
+            false
+        );
+        meterGrad.addColour(0.3, juce::Colours::yellow); // Aggiunge il giallo a 3/4 di altezza
+        g.setGradientFill(meterGrad);
+
+        // Calcoliamo l'altezza "piena" in base al volume
+        int heightL = (int)(meterLeftArea.getHeight() * levelLeftScaled);
+        int heightR = (int)(meterRightArea.getHeight() * levelRightScaled);
+
+		// Copie locali delle aree dei meter, così da poterle modificare senza alterare le originali usate per i bordi
+        auto localMeterL = meterLeftArea;
+        auto localMeterR = meterRightArea;
+
+        // Disegniamo il volume vero e proprio tagliando le copie
+        auto fillL = localMeterL.removeFromBottom(heightL);
+        auto fillR = localMeterR.removeFromBottom(heightR);
+
+        g.fillRoundedRectangle(fillL.toFloat(), 2.0f);
+        g.fillRoundedRectangle(fillR.toFloat(), 2.0f);
     #pragma endregion
 }
 
@@ -351,7 +390,7 @@ void StringUIdemoAudioProcessorEditor::resized()
 
         // Scaliamo il font dei titoli
         for (int i = 0; i < numSezioni; ++i)
-            titoloSezione[i].setFont(juce::FontOptions(13.0f * scale, juce::Font::bold));
+            titoloSezione[i].setFont(juce::FontOptions(11.0f * scale, juce::Font::bold));
 
         // --- DISTRIBUZIONE NELLE AREE DI LAVORO ---
 
@@ -396,27 +435,36 @@ void StringUIdemoAudioProcessorEditor::resized()
 
             // Posizioniamo il titolo della manopola centrato rispetto alla LARGHEZZA TOTALE DELLA CELLA
             titoloManopolaEffetto[i].setBounds(celle[i].getX(), bounds.getY() - (18 * scale), celle[i].getWidth(), 20 * scale);
-            titoloManopolaEffetto[i].setFont(juce::FontOptions(13.0f * scale, juce::Font::bold));
+            titoloManopolaEffetto[i].setFont(juce::FontOptions(14.0f * scale, juce::Font::plain));
         }
     #pragma endregion
 
+    #pragma region Posizionamento Volume Meter
+            // Prendiamo uno spazietto a destra della manopola Master
+            auto meterBox = celle[9].removeFromRight(15 * scale).reduced(0, 10 * scale).translated(-25 * scale, 0);
+
+            // Dividiamo in due barrette (Left e Right) con 2 pixel di spazio in mezzo
+            meterLeftArea = meterBox.removeFromLeft(meterBox.getWidth() / 2 - 1);
+            meterRightArea = meterBox.removeFromRight(meterLeftArea.getWidth());
+    #pragma endregion
+
     #pragma region Sezione oscilloscopio
-        //--- SETUP OSCILLOSCOPIO ---
-        // Parametri dell'onda visualizzata
-        oscilloscopio.setBufferSize(1024);
-        oscilloscopio.setSamplesPerBlock(128);
-        oscilloscopio.setRepaintRate(120); // Aggiornamento a 120 FPS
+            //--- SETUP OSCILLOSCOPIO ---
+            // Parametri dell'onda visualizzata
+            oscilloscopio.setBufferSize(1024);
+            oscilloscopio.setSamplesPerBlock(128);
+            oscilloscopio.setRepaintRate(120); // Aggiornamento a 120 FPS
 
-        audioProcessor.puntatoreOscilloscopio = &oscilloscopio;
+            audioProcessor.puntatoreOscilloscopio = &oscilloscopio;
 
-        // Colori: Sfondo e Colore dell'Onda
-        oscilloscopio.setColours(juce::Colour(0xFF201513), juce::Colours::cyan);
-        oscilloscopio.setOpaque(true); // Per migliorare le prestazioni, dato che disegniamo tutto lo sfondo
-        addAndMakeVisible(oscilloscopio);
+            // Colori: Sfondo e Colore dell'Onda
+            oscilloscopio.setColours(juce::Colour(0xFF201513), juce::Colours::cyan);
+            oscilloscopio.setOpaque(true); // Per migliorare le prestazioni, dato che disegniamo tutto lo sfondo
+            addAndMakeVisible(oscilloscopio);
 
-        // Posizionamento dell'oscilloscopio
-        oscilloscopio.setBounds(workOsc.reduced(10 * scale));    
-#pragma endregion
+            // Posizionamento dell'oscilloscopio
+            oscilloscopio.setBounds(workOsc.reduced(10 * scale));    
+    #pragma endregion
 }
 
 #pragma endregion

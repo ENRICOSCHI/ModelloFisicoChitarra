@@ -439,6 +439,19 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
             }
 	    }
     #pragma endregion
+
+    #pragma region Calcolo livello Meter Volume
+        // Calcoliamo l'RMS per il canale sinistro (0) e lo convertiamo in decibel
+        float rmsLeft = juce::Decibels::gainToDecibels(buffer.getRMSLevel(0, 0, buffer.getNumSamples()));
+        masterRmsLeft.store(rmsLeft);
+
+        // Se abbiamo anche il canale destro (1), facciamo lo stesso
+        if (buffer.getNumChannels() > 1) 
+        {
+            float rmsRight = juce::Decibels::gainToDecibels(buffer.getRMSLevel(1, 0, buffer.getNumSamples()));
+            masterRmsRight.store(rmsRight);
+        }
+    #pragma endregion
     
 
     // Se è aperta l'interfaccia grafica, passo il buffer all'oscilloscopio per visualizzare le onde sonore

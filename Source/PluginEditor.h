@@ -119,5 +119,13 @@ private:
 	// Il parametro 2 indica i due canali stereo (sinistro e destro)
     juce::AudioVisualiserComponent oscilloscopio{ 2 };
 
+    // Rettangoli per disegnare i meter
+	juce::Rectangle<int> meterLeftArea;
+	juce::Rectangle<int> meterRightArea;
+
+    // Variabili per memorizzare il valore scalato da disegnare
+    float levelLeftScaled = 0.0f;
+	float levelRightScaled = 0.0f;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StringUIdemoAudioProcessorEditor)
 };
