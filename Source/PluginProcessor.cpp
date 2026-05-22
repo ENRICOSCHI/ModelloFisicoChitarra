@@ -432,12 +432,7 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
 
     #pragma region Applicazione Master Volume
         float masterVolume = masterVolumeParameter->load() / 100.0f;
-        for (int ch = 0; ch < buffer.getNumChannels(); ++ch) {
-		    auto* channelData = buffer.getWritePointer(ch);
-            for (int numSample = 0; numSample < buffer.getNumSamples(); ++numSample) {
-                channelData[numSample] *= masterVolume; // Applico il volume finale
-            }
-	    }
+        buffer.applyGain(masterVolume); //Metodo per applicare il volume a tutto il buffer
     #pragma endregion
 
     #pragma region Calcolo livello Meter Volume
