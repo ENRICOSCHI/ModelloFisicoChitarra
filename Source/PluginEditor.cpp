@@ -6,126 +6,145 @@ StringUIdemoAudioProcessorEditor::StringUIdemoAudioProcessorEditor(StringUIdemoA
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
 
-#pragma region Visibilita sfondo corde
-    // --- Corde visive ---
-    for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
-    {
-        auto* sc = stringComponents.add(new StringComponent(stringColour(i)));
-        addAndMakeVisible(sc);
-    }
-#pragma endregion
-
-#pragma region accordatura corde setup
-    // --- Controlli tuning (uno per corda) ---
-    for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
-    {
-        // Pulsante [−]
-        auto* btnDown = tuningDownButtons.add(new juce::TextButton("-"));
-        // quando premo il pulsante...
-        btnDown->onClick = [this, i]()
-            {
-                int current = audioProcessor.getStringMidiNote(i);
-                audioProcessor.setStringMidiNote(i, current - 1);
-                updateTuningLabel(i);
-            };
-        addAndMakeVisible(btnDown);
-
-        // Label con nome nota + delta semitoni
-        auto* lbl = tuningLabels.add(new juce::Label());
-        lbl->setJustificationType(juce::Justification::centred);
-        lbl->setFont(juce::FontOptions(11.0f, juce::Font::bold));
-        lbl->setColour(juce::Label::textColourId, stringColour(i));
-        addAndMakeVisible(lbl);
-
-        // Pulsante [+]
-        auto* btnUp = tuningUpButtons.add(new juce::TextButton("+"));
-        //quando premo il pulsante...
-        btnUp->onClick = [this, i]()
-            {
-                int current = audioProcessor.getStringMidiNote(i);
-                audioProcessor.setStringMidiNote(i, current + 1);
-                updateTuningLabel(i);
-            };
-        addAndMakeVisible(btnUp);
-
-    }  
-
-    // --- Pulsante Reset ---
-    resetTuningButton.setButtonText("Reset");
-    resetTuningButton.onClick = [this]()
+    #pragma region Visibilita sfondo corde
+        // --- Corde visive ---
+        for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
         {
-            audioProcessor.resetTuning();
-            updateAllTuningLabels();
-        };
-    addAndMakeVisible(resetTuningButton);
+            auto* sc = stringComponents.add(new StringComponent(stringColour(i)));
+            addAndMakeVisible(sc);
+        }
+    #pragma endregion
 
-    // Inizializza tutte le label di tuning con i valori correnti
-    updateAllTuningLabels();
-#pragma endregion
+    #pragma region accordatura corde setup
+        // --- Controlli tuning (uno per corda) ---
+        for (int i = 0; i < StringUIdemoAudioProcessor::numStrings; ++i)
+        {
+            // Pulsante [−]
+            auto* btnDown = tuningDownButtons.add(new juce::TextButton("-"));
+            // quando premo il pulsante...
+            btnDown->onClick = [this, i]()
+                {
+                    int current = audioProcessor.getStringMidiNote(i);
+                    audioProcessor.setStringMidiNote(i, current - 1);
+                    updateTuningLabel(i);
+                };
+            addAndMakeVisible(btnDown);
+
+            // Label con nome nota + delta semitoni
+            auto* lbl = tuningLabels.add(new juce::Label());
+            lbl->setJustificationType(juce::Justification::centred);
+            lbl->setFont(juce::FontOptions(11.0f, juce::Font::bold));
+            lbl->setColour(juce::Label::textColourId, stringColour(i));
+            addAndMakeVisible(lbl);
+
+            // Pulsante [+]
+            auto* btnUp = tuningUpButtons.add(new juce::TextButton("+"));
+            //quando premo il pulsante...
+            btnUp->onClick = [this, i]()
+                {
+                    int current = audioProcessor.getStringMidiNote(i);
+                    audioProcessor.setStringMidiNote(i, current + 1);
+                    updateTuningLabel(i);
+                };
+            addAndMakeVisible(btnUp);
+
+        }  
+
+        // --- Pulsante Reset ---
+        resetTuningButton.setButtonText("Reset");
+        resetTuningButton.onClick = [this]()
+            {
+                audioProcessor.resetTuning();
+                updateAllTuningLabels();
+            };
+        addAndMakeVisible(resetTuningButton);
+
+        // Inizializza tutte le label di tuning con i valori correnti
+        updateAllTuningLabels();
+    #pragma endregion
 
     // --- Label nota suonata ---
     addAndMakeVisible(notaSuonataLabel);
     notaSuonataLabel.setText("Nota", juce::NotificationType::dontSendNotification);
     notaSuonataLabel.setFont(juce::FontOptions(13.0f));
     notaSuonataLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    notaSuonataLabel.setJustificationType(juce::Justification::centred);
 
-#pragma region Setup Titoli Sezioni
-    // Definiamo i nomi delle 6 macro-aree
-    juce::String nomiSezioni[numSezioni] = {
-        "OSCILLOSCOPIO", "MASTER VOLUME", "PARAMETRI FISICI", "DELAY", "DISTORTION", "REVERB"
-    };
+    #pragma region Setup Preset Menu
+        // --- SETUP PRESET MENU ---
+        addAndMakeVisible(presetMenu);
 
-    for (int i = 0; i < numSezioni; ++i)
-    {
-        titoloSezione[i].setText(nomiSezioni[i], juce::dontSendNotification);
-        titoloSezione[i].setJustificationType(juce::Justification::centred);
-        // Usiamo un grigio per non rubare l'attenzione ai titoli delle manopole
-        titoloSezione[i].setColour(juce::Label::textColourId, juce::Colours::grey);
-        addAndMakeVisible(titoloSezione[i]);
-    }
-#pragma endregion
+        // Aggiungiamo le voci (Il primo parametro è il nome, il secondo è l'ID univoco che deve partire da 1)
+        presetMenu.addItem("Default", 1);
+		presetMenu.addItem("Dream Harp", 2);
 
-#pragma region Setup monopole
+		// Setup dei colori e dell'allineamento del testo
+        presetMenu.setColour(juce::ComboBox::backgroundColourId, juce::Colour(0xFF242424));
+        presetMenu.setColour(juce::ComboBox::textColourId, juce::Colours::white);
+        presetMenu.setColour(juce::ComboBox::outlineColourId, juce::Colour(0xFF4D453A));
+        presetMenu.setJustificationType(juce::Justification::centred);
 
-    // Definizione dei nomi delle manopole (ampliabile)
-    juce::String nomiManopole[numManopole] = {
-        "Time", "Feedback",           // Delay (0, 1)
-        "Drive", "Gain",        // Distortion (2, 3)
-        "Hardness", "Damping", "Sustain", // Physical (4, 5, 6)
-        "Rev Mix", "Rev Size",     // Reverb (7, 8)
-        "Master"                   // Master Section (9)
-    };
+		// Gestione di quando cambia il preset selezionato
+        presetMenu.onChange = [this]() {applicaPreset(presetMenu.getSelectedId());};
+    #pragma endregion
 
-    // --- Manopole ---
-    for (int i = 0; i < numManopole; ++i)
-    {
-        manopolaEffetto[i].setSliderStyle(juce::Slider::Rotary);
-        manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
+    #pragma region Setup Titoli Sezioni
+        // Definiamo i nomi delle 6 macro-aree
+        juce::String nomiSezioni[numSezioni] = {
+            "OSCILLOSCOPIO", "MASTER VOLUME", "PARAMETRI FISICI", "DELAY", "DISTORTION", "REVERB"
+        };
 
-        manopolaEffetto[i].setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
-        manopolaEffetto[i].setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
-        manopolaEffetto[i].setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
-
-        // --- Sezione per le unità di misura ---
-        if (nomiManopole[i] == "Time")
+        for (int i = 0; i < numSezioni; ++i)
         {
-            manopolaEffetto[i].setTextValueSuffix(" s");
+            titoloSezione[i].setText(nomiSezioni[i], juce::dontSendNotification);
+            titoloSezione[i].setJustificationType(juce::Justification::centred);
+            // Usiamo un grigio per non rubare l'attenzione ai titoli delle manopole
+            titoloSezione[i].setColour(juce::Label::textColourId, juce::Colours::grey);
+            addAndMakeVisible(titoloSezione[i]);
         }
-        else if (nomiManopole[i] != "Drive" && nomiManopole[i] != "Gain" && nomiManopole[i] != "Hardness")
+    #pragma endregion
+
+    #pragma region Setup monopole
+
+        // Definizione dei nomi delle manopole (ampliabile)
+        juce::String nomiManopole[numManopole] = {
+            "Time", "Feedback",           // Delay (0, 1)
+            "Drive", "Gain",        // Distortion (2, 3)
+            "Hardness", "Damping", "Sustain", // Physical (4, 5, 6)
+            "Rev Mix", "Rev Size",     // Reverb (7, 8)
+            "Master"                   // Master Section (9)
+        };
+
+        // --- Manopole ---
+        for (int i = 0; i < numManopole; ++i)
         {
-            // Per esclusione, rimangono solo le 6 manopole in percentuale
-            manopolaEffetto[i].setTextValueSuffix(" %");
+            manopolaEffetto[i].setSliderStyle(juce::Slider::Rotary);
+            manopolaEffetto[i].setTextBoxStyle(juce::Slider::TextBoxBelow, false, 40, 15);
+
+            manopolaEffetto[i].setColour(juce::Slider::textBoxBackgroundColourId, juce::Colours::transparentBlack);
+            manopolaEffetto[i].setColour(juce::Slider::textBoxOutlineColourId, juce::Colours::transparentBlack);
+            manopolaEffetto[i].setColour(juce::Slider::textBoxTextColourId, juce::Colours::white);
+
+            // --- Sezione per le unità di misura ---
+            if (nomiManopole[i] == "Time")
+            {
+                manopolaEffetto[i].setTextValueSuffix(" s");
+            }
+            else if (nomiManopole[i] != "Drive" && nomiManopole[i] != "Gain" && nomiManopole[i] != "Hardness")
+            {
+                // Per esclusione, rimangono solo le 6 manopole in percentuale
+                manopolaEffetto[i].setTextValueSuffix(" %");
+            }
+
+            manopolaEffetto[i].setLookAndFeel(&stilePomello);
+            addAndMakeVisible(manopolaEffetto[i]);
+
+            titoloManopolaEffetto[i].setText(nomiManopole[i], juce::dontSendNotification);
+            titoloManopolaEffetto[i].setJustificationType(juce::Justification::centred);
+            titoloManopolaEffetto[i].setColour(juce::Label::textColourId, juce::Colours::white);
+            addAndMakeVisible(titoloManopolaEffetto[i]);
         }
-
-        manopolaEffetto[i].setLookAndFeel(&stilePomello);
-        addAndMakeVisible(manopolaEffetto[i]);
-
-        titoloManopolaEffetto[i].setText(nomiManopole[i], juce::dontSendNotification);
-        titoloManopolaEffetto[i].setJustificationType(juce::Justification::centred);
-        titoloManopolaEffetto[i].setColour(juce::Label::textColourId, juce::Colours::white);
-        addAndMakeVisible(titoloManopolaEffetto[i]);
-    }
-#pragma endregion
+    #pragma endregion
 
     setSize(1024, 576);
 
@@ -341,7 +360,7 @@ void StringUIdemoAudioProcessorEditor::resized()
         areaCordeSotto = bottomArea;
     
 
-        resetTuningButton.setBounds(4 * scale, bottomArea.getY() - (18 * scale), scaledTuningPanelWidth - (65 * scale), 13 * scale);
+        //resetTuningButton.setBounds(4 * scale, bottomArea.getY() - (18 * scale), scaledTuningPanelWidth - (65 * scale), 13 * scale);
         bottomArea.removeFromTop(8 * scale);
 
         for (int i = 0; i < totalStrings; ++i)
@@ -372,11 +391,24 @@ void StringUIdemoAudioProcessorEditor::resized()
     #pragma endregion
 
     #pragma region Area superiore scalata
-		// --- SETUP AREA SUPERIORE SCALATA ---
-        area.removeFromTop(30 * scale);
-        auto notaSuonataArea = area.removeFromBottom(19 * scale);
-        notaSuonataLabel.setBounds(notaSuonataArea.withSizeKeepingCentre(538 * scale, 20 * scale).translated(0, -2 * scale));
-        notaSuonataLabel.setFont(juce::FontOptions(10.0f * scale));
+
+        // --- SETUP AREA SUPERIORE SCALATA ---
+        area.removeFromTop(30 * scale); // Rimuove lo spazio per il titolo principale
+
+        // Creiamo una "Toolbar" orizzontale sopra le corde
+        auto toolbarArea = area.removeFromBottom(30 * scale);
+
+        // 1. Reset Button a Sinistra (allineato perfettamente con la colonna dell'accordatura)
+        auto resetArea = toolbarArea.removeFromLeft(scaledTuningPanelWidth);
+        resetTuningButton.setBounds(resetArea.withSizeKeepingCentre(45 * scale, 15 * scale));
+
+        // 2. Preset Menu a Destra (con un po' di margine dal bordo per non appiccicarlo)
+        auto presetArea = toolbarArea.removeFromRight(150 * scale).reduced(5 * scale, 7 * scale);
+        presetMenu.setBounds(presetArea);
+
+        // 3. Nota Suonata al Centro (prende tutto lo spazio rimanente tra il Reset e i Preset)
+        notaSuonataLabel.setBounds(toolbarArea);
+        notaSuonataLabel.setFont(juce::FontOptions(12.0f * scale));
 
         // Divisione Principale: 1/3 a Sinistra, 2/3 a Destra
         auto leftArea = area.removeFromLeft(area.getWidth() / 3);
@@ -640,3 +672,38 @@ void StringUIdemoAudioProcessorEditor::SetSeparationFret(juce::Graphics& g)
     }
 #pragma endregion
 }
+
+#pragma region Funzione per preset
+void StringUIdemoAudioProcessorEditor::applicaPreset(int presetId)
+{
+    // Creiamo una funzione Lambda interna comodissima per cambiare i parametri in 1 riga
+    auto setParam = [this](const juce::String& id, float veroValore)
+        {
+            if (auto* param = audioProcessor.apvts.getParameter(id))
+            {
+                // Convertiamo il valore reale in un valore 0-1 e lo inviamo
+                param->setValueNotifyingHost(param->convertTo0to1(veroValore));
+            }
+        };
+
+    // Usiamo lo switch per applicare il preset scelto
+    switch (presetId)
+    {
+    case 1: // Default Init (Tutto spento o neutro)
+        setParam("drive", 1.0f); setParam("gain", 0.5f);
+        setParam("delayTime", 0.4f); setParam("delayFb", 0.0f);
+        setParam("revMix", 0.0f); setParam("revSize", 50.0f);
+        setParam("hardness", 0.5f); setParam("damping", 100.0f); setParam("sustain", 100.0f);
+        setParam("delayOn", 0.0f); setParam("distOn", 0.0f); setParam("revOn", 0.0f);
+        break;
+    case 2: // Dream Harp
+        setParam("drive", 1.0f); setParam("gain", 0.10f);
+        setParam("delayTime", 0.11f); setParam("delayFb", 36.0f);
+        setParam("revMix", 100.0f); setParam("revSize", 100.0f);
+        setParam("hardness",0.01f); setParam("damping", 100.0f); setParam("sustain", 100.0f);
+        setParam("delayOn", 1.0f); setParam("distOn", 1.0f); setParam("revOn", 1.0f);
+        break;
+    default: break;
+    }
+}
+#pragma endregion

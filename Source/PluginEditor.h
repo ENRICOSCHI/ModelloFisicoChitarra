@@ -136,5 +136,11 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> atcDistOn;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> atcRevOn;
 
+    // Sezione dei menu a tendina per i preset
+    juce::ComboBox presetMenu;
+    
+    // Funzione per applicare i valori
+    void applicaPreset(int presetId);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StringUIdemoAudioProcessorEditor)
 };
