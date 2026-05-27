@@ -316,9 +316,11 @@ void StringUIdemoAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
         stringSynths.getUnchecked(i)->SetSustain(sustainParameter->load() / 100.0f);
     }
 
+	// Genero l'audio per ogni corda e lo sommo al buffer del canale 0 (mono)
     for (int i = 0; i < stringSynths.size(); ++i)
         stringSynths.getUnchecked(i)->generateAndAddData(channelData, buffer.getNumSamples());
 
+	// Essendo la chitarra virtuale monofonica, copio il canale 0 (mono) anche sul canale 1 (destro) per avere un output stereo
     for (int ch = 1; ch < buffer.getNumChannels(); ++ch)
         buffer.copyFrom(ch, 0, buffer, 0, 0, buffer.getNumSamples());
 
