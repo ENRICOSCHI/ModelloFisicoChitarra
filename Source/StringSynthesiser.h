@@ -26,7 +26,6 @@ public:
 
     void stringPlucked(float pluckPosition)
     {
-        jassert(pluckPosition >= 0.0f && pluckPosition <= 1.0f);
         if (doPluckForNextBuffer.compareAndSetBool(1, 0))
             amplitude = std::sin(juce::MathConstants<float>::pi * pluckPosition);
     }
