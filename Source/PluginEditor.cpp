@@ -401,11 +401,11 @@ void StringUIdemoAudioProcessorEditor::resized()
         // Creiamo una "Toolbar" orizzontale sopra le corde
         auto toolbarArea = area.removeFromBottom(30 * scale);
 
-        // Reset Button a Sinistra (allineato perfettamente con la colonna dell'accordatura)
+        // Reset Button a Sinistra (allineato con la colonna dell'accordatura)
         auto resetArea = toolbarArea.removeFromLeft(scaledTuningPanelWidth);
         resetTuningButton.setBounds(resetArea.withSizeKeepingCentre(45 * scale, 15 * scale));
 
-        // Preset Menu a Destra (con un po' di margine dal bordo per non appiccicarlo)
+        // Preset Menu a Destra (con un po' di margine dal bordo per non attaccarlo)
         auto presetArea = toolbarArea.removeFromRight(150 * scale).reduced(5 * scale, 7 * scale);
         presetMenu.setBounds(presetArea);
 
@@ -465,7 +465,7 @@ void StringUIdemoAudioProcessorEditor::resized()
         celle[1] = delayArea;
 
         // Distortion (Celle 2, 3)
-        // Riduciamo un po' i margini (5 invece di 10) visto che il titolo ha già rubato spazio
+        // Riduciamo un po' i margini (5 invece di 10) visto che il titolo ha già preso spazio
         auto distArea = workDist.reduced(5 * scale, 5 * scale);
         celle[2] = distArea.removeFromLeft(distArea.getWidth() / 2);
         celle[3] = distArea;
@@ -723,13 +723,13 @@ void StringUIdemoAudioProcessorEditor::applicaPreset(int presetId)
         setTuning(60, 57, 55, 52, 50, 48);
         break;
     case 3: // Electric
-        setParam("drive", 6.33f); setParam("gain", 0.65f);
-        setParam("delayTime", 0.06f); setParam("delayFb", 10.0f);
-        setParam("revMix", 10.0f); setParam("revSize", 33.0f);
-        setParam("hardness", 1.0f); setParam("damping", 100.0f); setParam("sustain", 100.0f);
+        setParam("drive", 4.84f); setParam("gain", 0.50f);
+        setParam("delayTime", 0.06f); setParam("delayFb", 6.0f);
+        setParam("revMix", 15.0f); setParam("revSize", 18.0f);
+        setParam("hardness", 0.80f); setParam("damping", 100.0f); setParam("sustain", 100.0f);
         setParam("delayOn", 1.0f); setParam("distOn", 1.0f); setParam("revOn", 1.0f);
 
-        setTuning(76, 71, 67, 62, 57, 52);
+        setTuning(70, 65, 61, 56, 51, 46);
         break;
     case 4: // Bass
         setParam("drive", 1.44f); setParam("gain", 0.45f);
